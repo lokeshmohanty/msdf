@@ -70,7 +70,7 @@ class CenterNet:
                 for j in range(int(x1), int(x2)):
                     heatmaps[c][i, j] = jnp.exp(
                         -((round(center[0]) - j) ** 2 + (round(center[1]) - i) ** 2)
-                        / (2 * sigma**2)
+                        / (2 * sigma**2 + 1e-5)
                     )
         return jnp.asarray(heatmaps)
 
