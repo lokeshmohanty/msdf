@@ -16,4 +16,5 @@
     wget https://www.nuscenes.org/data/v1.0-mini.tgz
     tar -xf v1.0-mini.tgz -C /data/sets/nuscenes
     ````
+
 - Run [`CenterNet.ipynb`](./notebooks/CenterNet.ipynb) notebook

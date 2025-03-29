@@ -4,10 +4,10 @@ import jax.numpy as jnp
 from tqdm import tqdm
 import matplotlib.pyplot as plt
 
-from data import cars
-from centernet import CenterNet
-from backbones.resnet import make_resnet
-from utils import setup_logger, visualize_detections
+from msdf.data import cars
+from msdf.centernet import CenterNet
+from msdf.backbones.resnet import make_resnet
+from msdf.utils import setup_logger, visualize_detections
 
 logger = setup_logger(__name__)
 
@@ -85,14 +85,15 @@ def train(images, targets):
         #   metrics_history[f'test_{metric}'].append(value)
         # metrics.reset()
 
-        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 5))
+        plt.figure(1)
+        _, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 5))
         ax1.set_title("Loss")
         # ax2.set_title("Intersection over Union (IOU)")
         ax1.plot(metrics_history[f"train_loss"], label=f"train_loss")
         # ax2.plot(metrics_history[f"train_iou"], label=f"train_iou")
         ax1.legend()
         # ax2.legend()
-        logger.info(f"Traininig loss: {metrics_history['train_loss'][-1]}")
+        loger.info(f"Traininig loss: {metrics_history['train_loss'][-1]}")
         plt.savefig("plots/train-cars.png")
         # plt.show()
     logger.info("Training done")
