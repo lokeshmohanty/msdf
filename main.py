@@ -4,31 +4,35 @@ import jax.numpy as jnp
 from tqdm import tqdm
 import matplotlib.pyplot as plt
 
+# import jax
+# jax.config.update('jax_platform_name', 'cpu')
+# jax.config.update("jax_debug_nans", True)
+# jax.config.update("jax_disable_jit", True)
+
 from msdf.data import cars
 from msdf.centernet import CenterNet
-from msdf.backbones.resnet import make_resnet
+from msdf.backbones.resnet import Resnet34
 from msdf.utils import setup_logger, visualize_detections
 
 logger = setup_logger(__name__)
 
-IMAGE_SIZE = (512, 512)
+IMAGE_SIZE = 512
 OUTPUT_STRIDE = 4
 NUM_CLASSES = 2
 BATCH_SIZE = 16
 
 def get_data(centernet):
     logger.info("Generate data")
-    images, bboxes = cars.load_data(limit=BATCH_SIZE, image_size=IMAGE_SIZE)
+    images, bboxes = cars.load_data(limit=3 * BATCH_SIZE, image_size=IMAGE_SIZE)
 
     logger.info("Process data")
     images = jnp.asarray(images) / 255.0
     targets = jnp.asarray([centernet.bboxes_to_heatmaps(bbox) for bbox in bboxes])
 
-    images = images.reshape(-1, BATCH_SIZE, *IMAGE_SIZE, 3)
+    images = images.reshape(-1, BATCH_SIZE, IMAGE_SIZE, IMAGE_SIZE, 3)
     targets = targets.reshape(-1, BATCH_SIZE, NUM_CLASSES + 4, 
-                              IMAGE_SIZE[0] // OUTPUT_STRIDE, 
-                              IMAGE_SIZE[1] // OUTPUT_STRIDE
-                              )
+                              IMAGE_SIZE // OUTPUT_STRIDE, 
+                              IMAGE_SIZE // OUTPUT_STRIDE)
     return images, targets
 
 def train(images, targets):
@@ -45,6 +49,7 @@ def train(images, targets):
     def loss_fn(model: nnx.Module, batch):
         outputs = model(batch[0])
         loss = nnx.vmap(centernet.loss_fn)(outputs, batch[1]).mean()
+        # jax.debug.print(f'Loss: {loss}')
         return loss, outputs
 
 
@@ -93,18 +98,19 @@ def train(images, targets):
         # ax2.plot(metrics_history[f"train_iou"], label=f"train_iou")
         ax1.legend()
         # ax2.legend()
-        loger.info(f"Traininig loss: {metrics_history['train_loss'][-1]}")
+        logger.info(f"Traininig loss: {metrics_history['train_loss'][-1]}")
         plt.savefig("plots/train-cars.png")
         # plt.show()
     logger.info("Training done")
 
 
 if __name__ == "__main__":
-    centernet = CenterNet(image_size=IMAGE_SIZE, output_stride=OUTPUT_STRIDE)
+
+    centernet = CenterNet(image_size=IMAGE_SIZE, output_stride=OUTPUT_STRIDE, n_classes=2)
     images, targets = get_data(centernet)
 
     logger.info("Initialize model")
-    model = make_resnet(101)(NUM_CLASSES + 4, rngs=nnx.Rngs(0))
+    model = Resnet34(NUM_CLASSES + 4, rngs=nnx.Rngs(0))
     train(images, targets)
 
     logger.info("Evaluate the trained model")

@@ -18,3 +18,12 @@
     ````
 
 - Run [`CenterNet.ipynb`](./notebooks/CenterNet.ipynb) notebook
+
+## Troubleshooting
+
+- `FigCanvas..` error occurs due to `nuscenes-devkit` not being compatible
+  with the latest versions of `matplotlib`
+- In the virtual environment, go to the file 
+  `.venv/lib/python3.10/site-packages/nuscenes/nuscenes.py` and in lines
+  909 and 911, change `fig.canvas.set_window_title` to
+  `fig.canvas.manager.set_window_title`

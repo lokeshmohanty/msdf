@@ -1,4 +1,3 @@
-from ctypes import Union
 from flax import nnx
 from typing import Callable
 from functools import partial
@@ -22,6 +21,7 @@ class ResidualBlock(nnx.Module):
         return nnx.relu(x)
 
 class BasicBlock(ResidualBlock):
+    scale: int = 1
     layers: list = []
     downsample: Callable | None
 
@@ -36,7 +36,7 @@ class BasicBlock(ResidualBlock):
             nnx.BatchNorm(out_channels, use_running_average=False, rngs=rngs),
             nnx.relu,
 
-            nnx.Conv(out_channels, out_channels, (3, 3), strides=stride, use_bias=False, rngs=rngs),
+            nnx.Conv(out_channels, out_channels, (3, 3), use_bias=False, rngs=rngs),
             nnx.BatchNorm(out_channels, use_running_average=False, rngs=rngs),
         ]
 
@@ -91,6 +91,7 @@ class Resnet(nnx.Module):
             nnx.Conv(256, 64, (3, 3), rngs=rngs),
             nnx.relu,
             nnx.Conv(64, num_output, (1, 1), rngs=rngs),
+            nnx.sigmoid,
 
             lambda x: jnp.transpose(x, (0, 3, 1, 2)),
         ]
@@ -133,12 +134,10 @@ class Resnet(nnx.Module):
             self.in_channels = out_channels[i]
         return layers
 
-def make_resnet(size: int):
-    spec = {
-        18: (BasicBlock, [2, 2, 2, 2]),
-        34: (BasicBlock, [3, 4, 6, 3]),
-        50: (Bottleneck, [3, 4, 6, 3]),
-        101: (Bottleneck, [3, 4, 23, 3]),
-        152: (Bottleneck, [3, 8, 36, 3]),
-    }
-    return partial(Resnet, *spec[size])
+
+# Standard Resnets
+Resnet18  = partial(Resnet, BasicBlock, [2, 2, 2, 2])
+Resnet34  = partial(Resnet, BasicBlock, [3, 4, 6, 3]),
+Resnet50  = partial(Resnet, Bottleneck, [3, 4, 6, 3]),
+Resnet101 = partial(Resnet, Bottleneck, [3, 4, 23, 3]),
+Resnet152 = partial(Resnet, Bottleneck, [3, 8, 36, 3]),
