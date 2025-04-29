@@ -1,5 +1,5 @@
 import numpy as np
-import jax.numpy as jnp
+import jax, jax.numpy as jnp
 
 
 class CenterNet:
@@ -7,8 +7,8 @@ class CenterNet:
         """
         Sets:
             input_size and output_size of the network
-            number of output maps is 
-                number of classes (keypoint types) 
+            number of output maps is
+                number of classes (keypoint types)
                 + 4(2 for size and 2 for offset, regression maps)
 
         Args:
@@ -20,7 +20,7 @@ class CenterNet:
         self.r = output_stride
         self.in_size = image_size
 
-        self.n_maps = n_classes + 4 # 2 for size and 2 for offset
+        self.n_maps = n_classes + 4  # 2 for size and 2 for offset
         self.out_size = self.in_size // self.r
 
     def bbox_to_center(self, box):
@@ -54,11 +54,11 @@ class CenterNet:
     def bboxes_to_heatmaps(self, bboxes):
         """
         Convert bounding boxes to heatmaps
-        output maps: 
-            one for each class, 
-            width, 
-            height, 
-            offset_x, 
+        output maps:
+            one for each class,
+            width,
+            height,
+            offset_x,
             offset_y
 
         Returns:
@@ -84,7 +84,9 @@ class CenterNet:
             for i in range(int(x1), int(x2)):
                 for j in range(int(y1), int(y2)):
                     val = center[0] - i, center[1] - j
-                    heatmaps[c][i, j] = np.exp(-np.power(val, 2).sum()/(2 * sigma**2 + 1e-5))
+                    heatmaps[c][i, j] = np.exp(
+                        -np.power(val, 2).sum() / (2 * sigma**2 + 1e-5)
+                    )
         return heatmaps
 
     def heatmaps_to_bboxes(self, heatmaps):
@@ -94,15 +96,15 @@ class CenterNet:
         Returns:
             list: list of bounding boxes with detection confidence
         """
-        offset_map = heatmaps[-2:] # offset x, offset y
-        size_map = heatmaps[-4:-2] # width, height
+        offset_map = heatmaps[-2:]  # offset x, offset y
+        size_map = heatmaps[-4:-2]  # width, height
         keypoints = []
         for c, heatmap in enumerate(heatmaps[:-4]):
             peaks = []
             shape = heatmap.shape
             is_local_maxima = (
                 lambda x, y: heatmap[x, y]
-                    == heatmap[x - 1 : x + 2, y - 1 : y + 2].max()
+                == heatmap[x - 1 : x + 2, y - 1 : y + 2].max()
             )
             for i in range(1, shape[0] - 1):
                 for j in range(1, shape[1] - 1):
@@ -145,13 +147,13 @@ class CenterNet:
 
         return jnp.where(
             (x > x1)
-                & (x > x2)
-                & (x > x3)
-                & (x > x4)
-                & (x > x5)
-                & (x > x6)
-                & (x > x7)
-                & (x > x8),
+            & (x > x2)
+            & (x > x3)
+            & (x > x4)
+            & (x > x5)
+            & (x > x6)
+            & (x > x7)
+            & (x > x8),
             x,
             0,
         )
@@ -171,11 +173,13 @@ class CenterNet:
             )
         ).mean()
         offset_loss = jnp.where(
-            pred_y_max == 0, 0,
+            pred_y_max == 0,
+            0,
             jnp.abs(output[-4] - target[-4]) + jnp.abs(output[-3] - target[-3]),
         ).sum()
         size_loss = jnp.where(
-            pred_y_max == 0, 0,
+            pred_y_max == 0,
+            0,
             jnp.abs(output[-2] - target[-2]) + jnp.abs(output[-1] - target[-1]),
         ).sum()
 
@@ -198,4 +202,3 @@ class CenterNet:
                 intersection += area_inter
                 union += area_union
         return intersection / union
-
