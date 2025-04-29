@@ -1,0 +1,15 @@
+[imagenet]
+n_epochs = 10
+learning_rate = 0.005
+momentum = 0.9
+batch_size = 1000
+plot_name = "plots/imagenet_training.png"
+checkpoint_dir = "models/imagenet/"
+
+[jax]
+jax_debug_nans = false
+jax_disable_jit = false
+# jax_platform_name = cpu
+
+[env]
+CUDA_VISIBLE_DEVICES = 3
