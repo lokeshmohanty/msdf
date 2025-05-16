@@ -1,5 +1,13 @@
+[cifar10]
+n_epochs = 100
+learning_rate = 0.005
+momentum = 0.9
+batch_size = 1000
+plot_name = "plots/cifar10_training.png"
+checkpoint_dir = "models/cifar10/"
+
 [imagenet]
-n_epochs = 10
+n_epochs = 1000
 learning_rate = 0.005
 momentum = 0.9
 batch_size = 1000

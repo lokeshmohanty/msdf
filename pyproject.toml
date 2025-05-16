@@ -12,6 +12,7 @@ dependencies = [
     "jax-ai-stack>=2025.4.9",
     "jax[cuda12]>=0.5.3",
     "nuscenes-devkit==1.1.3",
+    "polars>=1.28.1",
 ]
 
 [dependency-groups]

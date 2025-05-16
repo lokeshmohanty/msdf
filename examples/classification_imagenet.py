@@ -101,7 +101,7 @@ def accuracy(logits, labels):
 
 def save_model(model_state, ckpt_dir=config.checkpoint_dir):
     ckpt_mgr = ocp.CheckpointManager(
-        ocp.test_utils.erase_and_create_empty(ckpt_dir),
+        ckpt_dir,
         options=ocp.CheckpointManagerOptions(
             max_to_keep=2,
             keep_checkpoints_without_metrics=False,
@@ -151,13 +151,13 @@ def fit_model(model, optimizer, train_data, val_data, n_epochs=config.n_epochs):
         print(f"Epoch {epoch + 1} in {time.time() - start_time:.2f} sec: ")
         metrics["train_loss"].append(t_loss / n)
         metrics["train_accuracy"].append(t_acc / n)
-        print(f"\tTrain     Loss: {metrics['train_loss'][-1]:.4f}")
+        print(f"\t    Train Loss: {metrics['train_loss'][-1]:.4f}")
         print(f"\tTrain Accuracy: {metrics['train_accuracy'][-1]:.4f}")
 
         loss, logits = eval_step(model, val_data, None)
         metrics["val_loss"].append(loss)
         metrics["val_accuracy"].append(accuracy(logits, val_data[1]))
-        print(f"\t  Val     Loss: {metrics['val_loss'][-1]:.4f}")
+        print(f"\t      Val Loss: {metrics['val_loss'][-1]:.4f}")
         print(f"\t  Val Accuracy: {metrics['val_accuracy'][-1]:.4f}")
     return metrics
 
